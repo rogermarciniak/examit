@@ -1,0 +1,59 @@
+{% from "sb-admin/macros/tables/advtable.html" import adv_table %}
+{% from "sb-admin/macros/tables/table.html" import table %}
+
+{% extends "sb-admin/master.html" %}
+
+{% block body %}
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				Add a category
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-lg-6">
+						<form role="form" action="{{ url_for('.cats') }}" method="POST">
+       <div class="form-group">
+								<label>Category:</label>
+								 <input name="category" class="form-control" placeholder="eg. electronics (20chars)" maxlength="20" required><br/>
+							</div>
+      <div class-"form-group">
+							<button type="submit" class="btn btn-default">Add category</button>
+							<button type="reset" class="btn btn-default">Reset</button>
+       </div>
+						</form>
+					</div>
+				</div>
+				<!-- /.row (nested) -->
+			</div>
+			<!-- /.panel-body -->
+		</div>
+		<!-- /.panel -->
+	</div>
+	<!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+<div class="row">
+	<div class="col-lg-12">
+		{{adv_table("Categories", admin_view.ctable.categories.columns, admin_view.ctable.categories.rows)}}
+	</div>
+</div>
+{% endblock %}
+
+{% block tail %}
+
+    <!-- DataTables JavaScript -->
+    <script src="../bower_components/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="../bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js"></script>
+
+    <!-- Page-Level Demo Scripts - Tables - Use for reference -->
+    <script>
+    $(document).ready(function() {
+        $('#dataTables-example').DataTable({
+                responsive: true
+        });
+    });
+    </script>
+
+{% endblock %}
