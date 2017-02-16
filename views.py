@@ -20,18 +20,29 @@ tests = db.tests
 # Create customized index view class that handles login & registration
 class AdminIndexView(admin.AdminIndexView):
 
-    def get_quests():
-        columns = ["Category", "Question",
-                   "Key", "Unique ID"]
-
+    def get_quests(self):
+        columns = ["Question", "Category", "Key", "Creation Date", "Unique ID"]
         found = quests.find()
         rows = []
         for q in found:
             row = []
-            row.append(q['CATEGORY'])
             row.append(q['QUESTION'])
+            row.append(q['CATEGORY'])
             row.append(q['KEY'])
+            row.append(q['CREATED'])
             row.append(q['_id'])
+            rows.append(row)
+        return (columns, rows)
+
+    def get_cats(self):
+        columns = ["Category", "Creation Date", "Unique ID"]
+        found = cats.find()
+        rows = []
+        for c in found:
+            row = []
+            row.append(c['CATEGORY'])
+            row.append(c['CREATED'])
+            row.append(c['_id'])
             rows.append(row)
         return (columns, rows)
 
@@ -59,6 +70,9 @@ class AdminIndexView(admin.AdminIndexView):
         (qcols, qrows) = self.get_quests()
         self.qtable = {"questions": {"columns": qcols, "rows": qrows}}
 
+        (ccols, crows) = self.get_cats()
+        self.ctable = {"categories": {"columns": ccols, "rows": crows}}
+
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
@@ -75,8 +89,16 @@ class AdminIndexView(admin.AdminIndexView):
 
         if request.method == 'POST':
             cat = request.form.get('category')
-            cat_to_db = {"CATEGORY": cat}
-            result = cats.replace_one(cat_to_db, cat_to_db, upsert=True)
+            current_time = time.localtime()
+            ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
+                                  current_time)
+
+            cat_to_db = {"CATEGORY": cat,
+                         "CREATED": ctime}
+
+            db_checker = {"CATEGORY": cat}
+
+            result = cats.replace_one(db_checker, cat_to_db, upsert=True)
             if result.modified_count == 1:
                 flash('Category/already existed!',
                       category='info')
@@ -86,6 +108,7 @@ class AdminIndexView(admin.AdminIndexView):
             return render_template('sb-admin/pages/cats.html',
                                    admin_view=self)
 
+        self._tools()
         self.header = "Categories"
         return render_template('sb-admin/pages/cats.html', admin_view=self)
 
@@ -114,11 +137,15 @@ class AdminIndexView(admin.AdminIndexView):
                             " ".join(request.form.get('D').split()),
                             " ".join(request.form.get('E').split())])
             anskey = request.form.get('anskey')
+            current_time = time.localtime()
+            ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
+                                  current_time)
 
             quest_to_db = {"CATEGORY": cat,
                            "QUESTION": qbody,
                            "ANSWERS": answers,
-                           "KEY": anskey}
+                           "KEY": anskey,
+                           "CREATED": ctime}
 
             db_checker = {"CATEGORY": cat,
                           "QUESTION": qbody}
