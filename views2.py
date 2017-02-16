@@ -1,3 +1,5 @@
+import re
+
 import flask_admin as admin
 import flask_login as login
 from flask import flash, redirect, render_template, request, url_for
@@ -45,17 +47,18 @@ class AdminIndexView(admin.AdminIndexView):
 
         self._stubs()
         self.header = "Welcome to ExamIT"
-        return render_template('sb-admin/pages/start.html', admin_view=self)
+        return render_template('sb-admin/pages/start.html', admin_view=self
 
     @expose('/categories', methods=['GET', 'POST'])
-    def categories(self):
+    def cats(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
         if request.method == 'POST':
-            cat = request.form.get('category')
-            cat_to_db = {"CATEGORY": cat}
-            result = cats.replace_one(cat_to_db, cat_to_db, upsert=True)
+            cat=request.form.get('category')
+            cat_to_db={"CATEGORY": cat}
+            result=cats.replace_one(cat_to_db, cat_to_db, upsert=True)
+            category='success'
             if result.modified_count == 1:
                 flash('Category/already existed!',
                       category='info')
@@ -65,7 +68,7 @@ class AdminIndexView(admin.AdminIndexView):
             return render_template('sb-admin/pages/cats.html',
                                    admin_view=self)
 
-        self.header = "Categories"
+        self.header="Categories"
         return render_template('sb-admin/pages/cats.html', admin_view=self)
 
     @expose('/questions/display')
@@ -74,9 +77,8 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Questions"
-        return render_template('sb-admin/pages/questions.html',
-                               admin_view=self)
+        self.header="Questions"
+        return render_template('sb-admin/pages/questions.html', admin_view=self)
 
     @expose('/questions/add', methods=['GET', 'POST'])
     def add_question(self):
@@ -84,28 +86,29 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         if request.method == 'POST':
-            cat = request.form.get('category')
-            qbody = " ".join(request.form.get('question').split())
-            answers = []
+            cat=request.form.get('category')
+            qbody=" ".join(request.form.get('question').split())
+            answers=[]
             answers.extend([" ".join(request.form.get('A').split()),
                             " ".join(request.form.get('B').split()),
                             " ".join(request.form.get('C').split()),
                             " ".join(request.form.get('D').split()),
                             " ".join(request.form.get('E').split())])
-            anskey = request.form.get('anskey')
+            anskey=request.form.get('anskey')
 
-            quest_to_db = {"CATEGORY": cat,
-                           "QUESTION": qbody,
-                           "ANSWERS": answers,
-                           "KEY": anskey}
+            quest_to_db={"CATEGORY": cat,
+                         "QUESTION": qbody,
+                         "ANSWERS": answers,
+                         "KEY": anskey}
 
-            db_checker = {"CATEGORY": cat,
-                          "QUESTION": qbody}
+            db_checker={"CATEGORY": cat
+                        "QUESTION": qbody}
 
             # if a question with the same category/question combo exists,
             # then it is replaced with the new one,
             # otherwise treated as a new question and added to the db
-            result = quests.replace_one(db_checker, quest_to_db, upsert=True)
+            result=quests.replace_one(db_checker, quest_to_db, upsert=True)
+            category='success'
             if result.modified_count == 1:
                 flash('Category/Answer combination existed and was updated!',
                       category='info')
@@ -115,7 +118,7 @@ class AdminIndexView(admin.AdminIndexView):
             return render_template('sb-admin/pages/qadd.html',
                                    admin_view=self)
 
-        self.header = "Add Question"
+        self.header="Add Question"
         return render_template('sb-admin/pages/qadd.html', admin_view=self)
 
     @expose('/tests/display')
@@ -124,7 +127,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Tests"
+        self.header="Tests"
         return render_template('sb-admin/pages/tests.html', admin_view=self)
 
     @expose('/tests/add')
@@ -133,7 +136,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Add Test"
+        self.header="Add Test"
         return render_template('sb-admin/pages/tadd.html', admin_view=self)
 
     @expose('/blank')
@@ -142,7 +145,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Blank"
+        self.header="Blank"
         return render_template('sb-admin/pages/blank.html', admin_view=self)
 
     @expose('/flot')
@@ -151,7 +154,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Flot Charts"
+        self.header="Flot Charts"
         return render_template('sb-admin/pages/flot.html', admin_view=self)
 
     @expose('/morris')
@@ -160,7 +163,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Morris Charts"
+        self.header="Morris Charts"
         return render_template('sb-admin/pages/morris.html', admin_view=self)
 
     @expose('/tables')
@@ -169,7 +172,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Tables"
+        self.header="Tables"
         return render_template('sb-admin/pages/tables.html', admin_view=self)
 
     @expose('/forms')
@@ -178,7 +181,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Forms"
+        self.header="Forms"
         return render_template('sb-admin/pages/forms.html', admin_view=self)
 
     @expose('/ui/panelswells')
@@ -187,9 +190,8 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Panels Wells"
-        return render_template('sb-admin/pages/ui/panels-wells.html',
-                               admin_view=self)
+        self.header="Panels Wells"
+        return render_template('sb-admin/pages/ui/panels-wells.html', admin_view=self)
 
     @expose('/ui/buttons')
     def buttons(self):
@@ -197,9 +199,8 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Buttons"
-        return render_template('sb-admin/pages/ui/buttons.html',
-                               admin_view=self)
+        self.header="Buttons"
+        return render_template('sb-admin/pages/ui/buttons.html', admin_view=self)
 
     @expose('/ui/notifications')
     def notifications(self):
@@ -207,9 +208,8 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Notifications"
-        return render_template('sb-admin/pages/ui/notifications.html',
-                               admin_view=self)
+        self.header="Notifications"
+        return render_template('sb-admin/pages/ui/notifications.html', admin_view=self)
 
     @expose('/ui/typography')
     def typography(self):
@@ -217,9 +217,8 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Typography"
-        return render_template('sb-admin/pages/ui/typography.html',
-                               admin_view=self)
+        self.header="Typography"
+        return render_template('sb-admin/pages/ui/typography.html', admin_view=self)
 
     @expose('/ui/icons')
     def icons(self):
@@ -227,9 +226,8 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Icons"
-        return render_template('sb-admin/pages/ui/icons.html',
-                               admin_view=self)
+        self.header="Icons"
+        return render_template('sb-admin/pages/ui/icons.html', admin_view=self)
 
     @expose('/ui/grid')
     def grid(self):
@@ -237,23 +235,21 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         self._stubs()
-        self.header = "Grid"
-        return render_template('sb-admin/pages/ui/grid.html',
-                               admin_view=self)
+        self.header="Grid"
+        return render_template('sb-admin/pages/ui/grid.html', admin_view=self)
 
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
         # handle user login
-        form = LoginForm(request.form)
+        form=LoginForm(request.form)
         if helpers.validate_form_on_submit(form):
-            user = form.get_user()
+            user=form.get_user()
             login.login_user(user)
 
         if login.current_user.is_authenticated:
             return redirect(url_for('.index'))
-        self._template_args['form'] = form
-        return render_template('sb-admin/pages/login.html',
-                               form=form)
+        self._template_args['form']=form
+        return render_template('sb-admin/pages/login.html', form=form)
 
     @expose('/logout/')
     def logout_view(self):
@@ -265,5 +261,4 @@ class BlankView(admin.BaseView):
 
     @expose('/')
     def index(self):
-        return render_template('sb-admin/pages/blank.html',
-                               admin_view=self)
+        return render_template('sb-admin/pages/blank.html', admin_view=self)
