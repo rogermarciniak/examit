@@ -105,8 +105,7 @@ class AdminIndexView(admin.AdminIndexView):
             else:
                 flash('Category was successfully added!',
                       category='success')
-            return render_template('sb-admin/pages/cats.html',
-                                   admin_view=self)
+            return redirect(url_for('.cats'))
 
         self._tools()
         self.header = "Categories"
@@ -126,6 +125,12 @@ class AdminIndexView(admin.AdminIndexView):
     def add_question(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
+
+        catList = []
+        found = cats.find()
+        for c in found:
+            catList.append(c['CATEGORY'])
+        catList.sort()
 
         if request.method == 'POST':
             cat = request.form.get('category')
@@ -161,10 +166,14 @@ class AdminIndexView(admin.AdminIndexView):
                 flash('Question was successfully added!',
                       category='success')
             return render_template('sb-admin/pages/qadd.html',
+                                   cats=catList,
                                    admin_view=self)
 
+        self._tools()
         self.header = "Add Question"
-        return render_template('sb-admin/pages/qadd.html', admin_view=self)
+        return render_template('sb-admin/pages/qadd.html',
+                               cats=catList,
+                               admin_view=self)
 
     @expose('/tests/display')
     def tests(self):

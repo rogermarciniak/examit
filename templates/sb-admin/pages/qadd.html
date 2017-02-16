@@ -14,9 +14,13 @@
 						<form role="form" action="{{ url_for('.add_question') }}" method="POST" onsubmit="return confirm('Is the form filled out correctly?');">
        <div class="form-group">
 								<label>Category:</label>
+        <div class="pull-right">
+          <a href="{{ url_for('.cats') }}" data-toggle="tooltip" data-placement="top" title="Click this link to add a category!">Category missing?</a>
+        </div>
         <select name="category" class="form-control">
-         <option>electronics</option>
-									<option>cat2</option>
+         {% for c in cats %}
+          <option>{{c}}</option>
+         {% endfor %}
 								</select>
 							</div>
        <div class="form-group">
