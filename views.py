@@ -1,3 +1,5 @@
+import time
+
 import flask_admin as admin
 import flask_login as login
 from flask import flash, redirect, render_template, request, url_for
@@ -17,6 +19,21 @@ tests = db.tests
 
 # Create customized index view class that handles login & registration
 class AdminIndexView(admin.AdminIndexView):
+
+    def get_quests():
+        columns = ["Category", "Question",
+                   "Key", "Unique ID"]
+
+        found = quests.find()
+        rows = []
+        for q in found:
+            row = []
+            row.append(q['CATEGORY'])
+            row.append(q['QUESTION'])
+            row.append(q['KEY'])
+            row.append(q['_id'])
+            rows.append(row)
+        return (columns, rows)
 
     def _stubs(self):
         self.nav = {
@@ -38,6 +55,10 @@ class AdminIndexView(admin.AdminIndexView):
             "tabitems": stub.get_tab_items()
         }
 
+    def _tools(self):
+        (qcols, qrows) = self.get_quests()
+        self.qtable = {"questions": {"columns": qcols, "rows": qrows}}
+
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
@@ -48,7 +69,7 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/start.html', admin_view=self)
 
     @expose('/categories', methods=['GET', 'POST'])
-    def categories(self):
+    def cats(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
@@ -73,7 +94,7 @@ class AdminIndexView(admin.AdminIndexView):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
+        self._tools()
         self.header = "Questions"
         return render_template('sb-admin/pages/questions.html',
                                admin_view=self)
