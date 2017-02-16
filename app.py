@@ -63,7 +63,7 @@ init_login()
 
 # Create admin
 admin = admin.Admin(app,
-                    'ExamIT v0.1',
+                    'ExamIT v0.5',
                     index_view=AdminIndexView())
 # admin.add_view(BlankView(name='Blank', url='blank', endpoint='blank'))
 

@@ -18,7 +18,7 @@
           <a href="{{ url_for('.cats') }}" data-toggle="tooltip" data-placement="top" title="Click this link to add a category!">Category missing?</a>
         </div>
         <select name="category" class="form-control">
-         {% for c in cats %}
+         {% for c in categs %}
           <option>{{c}}</option>
          {% endfor %}
 								</select>

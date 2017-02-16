@@ -68,10 +68,12 @@ class AdminIndexView(admin.AdminIndexView):
 
     def _tools(self):
         (qcols, qrows) = self.get_quests()
-        self.qtable = {"questions": {"columns": qcols, "rows": qrows}}
+        self.qtable = {"questions": {"columns": qcols,
+                                     "rows": qrows}}
 
         (ccols, crows) = self.get_cats()
-        self.ctable = {"categories": {"columns": ccols, "rows": crows}}
+        self.ctable = {"categories": {"columns": ccols,
+                                      "rows": crows}}
 
     @expose('/')
     def index(self):
@@ -109,7 +111,8 @@ class AdminIndexView(admin.AdminIndexView):
 
         self._tools()
         self.header = "Categories"
-        return render_template('sb-admin/pages/cats.html', admin_view=self)
+        return render_template('sb-admin/pages/cats.html',
+                               admin_view=self)
 
     @expose('/questions/display')
     def questions(self):
@@ -126,11 +129,11 @@ class AdminIndexView(admin.AdminIndexView):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        catList = []
+        catlist = []
         found = cats.find()
         for c in found:
-            catList.append(c['CATEGORY'])
-        catList.sort()
+            catlist.append(c['CATEGORY'])
+        catlist.sort()
 
         if request.method == 'POST':
             cat = request.form.get('category')
@@ -166,13 +169,13 @@ class AdminIndexView(admin.AdminIndexView):
                 flash('Question was successfully added!',
                       category='success')
             return render_template('sb-admin/pages/qadd.html',
-                                   cats=catList,
+                                   categs=catlist,
                                    admin_view=self)
 
         self._tools()
         self.header = "Add Question"
         return render_template('sb-admin/pages/qadd.html',
-                               cats=catList,
+                               categs=catlist,
                                admin_view=self)
 
     @expose('/tests/display')
@@ -184,14 +187,57 @@ class AdminIndexView(admin.AdminIndexView):
         self.header = "Tests"
         return render_template('sb-admin/pages/tests.html', admin_view=self)
 
-    @expose('/tests/add')
+    @expose('/tests/generate')
     def gentest(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
+        catlist = []
+        found = cats.find()
+        for c in found:
+            catlist.append(c['CATEGORY'])
+        catlist.sort()
+
+        if request.method == 'POST':
+            title = request.form.get('title')
+            timeal = request.form.get('timeallowed')
+            lecturer = request.form.get('lecturer')
+            module = request.form.get('module')
+            category = request.form.get('category')
+            qamount = 5  # request.form.get('amount')
+            current_time = time.localtime()
+            ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
+                                  current_time)
+
+            test_to_db = {"TITLE": title,
+                          "TIME_ALLOWED": timeal,
+                          "LECTURER": lecturer,
+                          "MODULE": module,
+                          "CATEGORY": category,
+                          "QUESTCNT": qamount,
+                          "CREATED": ctime}
+
+            db_checker = {"TITLE": title,
+                          "MODULE": module,
+                          "CATEGORY": category,
+                          "QUESTCNT": qamount}
+
+            result = tests.replace_one(db_checker, test_to_db, upsert=True)
+            if result.modified_count == 1:
+                flash('Test existed and was updated!',
+                      category='info')
+            else:
+                flash('Question was successfully added!',
+                      category='success')
+            return render_template('sb-admin/pages/tgen.html',
+                                   categs=catlist,
+                                   admin_view=self)
+
         self._stubs()
-        self.header = "Add Test"
-        return render_template('sb-admin/pages/tadd.html', admin_view=self)
+        self.header = "Generate Test"
+        return render_template('sb-admin/pages/tgen.html',
+                               categs=catlist,
+                               admin_view=self)
 
     @expose('/blank')
     def blank(self):

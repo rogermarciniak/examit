@@ -121,7 +121,7 @@
                 <li>
                     <a href="#"><i class="fa fa-question-circle fa-fw"></i> Questions<span class="fa arrow"></span></a>
                     <ul class="nav nav-second-level">
-                        {{nav_link(name="Display", url=url_for('admin.questions'), active=name)}}
+                        {{nav_link(name="Display Questions", url=url_for('admin.questions'), active=name)}}
                         {{nav_link(name="Add Question", url=url_for('admin.add_question'), active=name)}}
                     </ul>
                     <!-- /.nav-second-level -->
@@ -129,7 +129,7 @@
                 <li>
                     <a href="#"><i class="fa fa-edit fa-fw"></i> Tests<span class="fa arrow"></span></a>
                     <ul class="nav nav-second-level">
-                        {{nav_link(name="Display", url=url_for('admin.tests'), active=name)}}
+                        {{nav_link(name="Display Tests", url=url_for('admin.tests'), active=name)}}
                         {{nav_link(name="Generate Test", url=url_for('admin.gentest'), active=name)}}
                     </ul>
                     <!-- /.nav-second-level -->
