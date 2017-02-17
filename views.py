@@ -2,7 +2,7 @@ import time
 
 import flask_admin as admin
 import flask_login as login
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, session, url_for
 from flask_admin import expose, helpers
 from pymongo import MongoClient
 
@@ -223,13 +223,14 @@ class AdminIndexView(admin.AdminIndexView):
                           "QUESTCNT": qamount}
 
             result = tests.replace_one(db_checker, test_to_db, upsert=True)
+            session['current_tID'] = result.inserted_id
             if result.modified_count == 1:
                 flash('Test existed and was updated!',
                       category='info')
             else:
                 flash('Question was successfully added!',
                       category='success')
-            return render_template('sb-admin/pages/tgen.html',
+            return render_template('sb-admin/pages/tgensend.html',
                                    categs=catlist,
                                    admin_view=self)
 
@@ -238,6 +239,20 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/tgen.html',
                                categs=catlist,
                                admin_view=self)
+
+    @expose('/tests/confirm')
+    def gentest_conf(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        # TODO:
+        # display session['current_tID'] contents in tgensend.html
+        # if lecturer accepts, keep it, else, delete it and back to gentest
+        # if accepted, create a pdf and store with test
+
+        self._stubs()
+        self.header = "Blank"
+        return render_template('sb-admin/pages/tgensend.html', admin_view=self)
 
     @expose('/blank')
     def blank(self):
