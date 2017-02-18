@@ -220,45 +220,57 @@ class AdminIndexView(admin.AdminIndexView):
             qamount = 5  # request.form.get('amount')
             current_time = time.localtime()
             ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', current_time)
-            qIDlist, qlist = [], []
+            qlist = []
             # draw n questions from category
-            for q in sample(quests.find({"CATEGORY": categ}), qamount):
-                qIDlist.append(q['_id'])
-                qlist.append(q['QUESTION'])
+            [qlist.append(q) for q in sample(quests.find({"CATEGORY": categ}),
+                                             qamount)]
 
-            test_to_db = {"TITLE": title,
-                          "TIME_ALLOWED": timeal,
-                          "LECTURER": lecturer,
-                          "MODULE": module,
-                          "CATEGORY": category,
-                          "QUESTCNT": qamount,
-                          "QUESTIONS": qlist,
-                          "CREATED": ctime}
+            test = {"TITLE": title,
+                    "TIME_ALLOWED": timeal,
+                    "LECTURER": lecturer,
+                    "MODULE": module,
+                    "CATEGORY": categ,
+                    "QUESTCNT": qamount,
+                    "QUESTIONS": qlist,
+                    "CREATED": ctime}
 
             db_checker = {"TITLE": title,
                           "MODULE": module,
-                          "CATEGORY": category,
+                          "CATEGORY": categ,
                           "QUESTCNT": qamount}
 
-            result = tests.replace_one(db_checker, test_to_db, upsert=True)
-            session['current_tID'] = result.inserted_id
-            print(session['current_tID'])
+            session['test'] = test
+            session['db_checker'] = db_checker
+            return render_template('sb-admin/pages/tgensend.html',
+                                   test=test,
+                                   admin_view=self)
+
+        self._tools()
+        self.header = "Confirm Test Creation"
+        return render_template('sb-admin/pages/tgensend.html', admin_view=self)
+
+    @expose('/tests/confirmed', methods=['GET', 'POST'])
+    def gentest_confd(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        if request.method == 'POST':
+            # TODO:
+            # create a pdf and store with test
+            result = tests.replace_one(session['db_checker'],
+                                       session['test'],
+                                       upsert=True)
             if result.modified_count == 1:
                 flash('Test existed and was updated!',
                       category='info')
             else:
                 flash('Test was successfully generated!',
                       category='success')
-            return render_template('sb-admin/pages/tgensend.html',
-                                   admin_view=self)
-        # TODO:
-        # display test contents in tgensend.html
-        # if lecturer accepts, keep it, else, delete it and back to gentest
-        # if accepted, create a pdf and store with test
 
-        self._tools()
-        self.header = "Confirm Test Creation"
-        return render_template('sb-admin/pages/tgensend.html', admin_view=self)
+        self._stubs()
+        self.header = "Generate Test"
+        return render_template('sb-admin/pages/tgen.html',
+                               admin_view=self)
 
     @expose('/blank')
     def blank(self):
