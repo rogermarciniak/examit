@@ -1,4 +1,5 @@
 import time
+from random import sample
 
 import flask_admin as admin
 import flask_login as login
@@ -178,16 +179,17 @@ class AdminIndexView(admin.AdminIndexView):
                                categs=catlist,
                                admin_view=self)
 
-    @expose('/tests/display')
+    @expose('/tests/display', methods=['GET', 'POST'])
     def tests(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
         self._stubs()
         self.header = "Tests"
-        return render_template('sb-admin/pages/tests.html', admin_view=self)
+        return render_template('sb-admin/pages/tests.html',
+                               admin_view=self)
 
-    @expose('/tests/generate')
+    @expose('/tests/generate', methods=['GET', 'POST'])
     def gentest(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -198,16 +200,31 @@ class AdminIndexView(admin.AdminIndexView):
             catlist.append(c['CATEGORY'])
         catlist.sort()
 
+        self._stubs()
+        self.header = "Generate Test"
+        return render_template('sb-admin/pages/tgen.html',
+                               categs=catlist,
+                               admin_view=self)
+
+    @expose('/tests/confirm', methods=['GET', 'POST'])
+    def gentest_conf(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
         if request.method == 'POST':
             title = request.form.get('title')
             timeal = request.form.get('timeallowed')
             lecturer = request.form.get('lecturer')
             module = request.form.get('module')
-            category = request.form.get('category')
+            categ = request.form.get('category')
             qamount = 5  # request.form.get('amount')
             current_time = time.localtime()
-            ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
-                                  current_time)
+            ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', current_time)
+            qIDlist, qlist = [], []
+            # draw n questions from category
+            for q in sample(quests.find({"CATEGORY": categ}), qamount):
+                qIDlist.append(q['_id'])
+                qlist.append(q['QUESTION'])
 
             test_to_db = {"TITLE": title,
                           "TIME_ALLOWED": timeal,
@@ -215,6 +232,7 @@ class AdminIndexView(admin.AdminIndexView):
                           "MODULE": module,
                           "CATEGORY": category,
                           "QUESTCNT": qamount,
+                          "QUESTIONS": qlist,
                           "CREATED": ctime}
 
             db_checker = {"TITLE": title,
@@ -224,34 +242,22 @@ class AdminIndexView(admin.AdminIndexView):
 
             result = tests.replace_one(db_checker, test_to_db, upsert=True)
             session['current_tID'] = result.inserted_id
+            print(session['current_tID'])
             if result.modified_count == 1:
                 flash('Test existed and was updated!',
                       category='info')
             else:
-                flash('Question was successfully added!',
+                flash('Test was successfully generated!',
                       category='success')
             return render_template('sb-admin/pages/tgensend.html',
-                                   categs=catlist,
                                    admin_view=self)
-
-        self._stubs()
-        self.header = "Generate Test"
-        return render_template('sb-admin/pages/tgen.html',
-                               categs=catlist,
-                               admin_view=self)
-
-    @expose('/tests/confirm')
-    def gentest_conf(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
         # TODO:
-        # display session['current_tID'] contents in tgensend.html
+        # display test contents in tgensend.html
         # if lecturer accepts, keep it, else, delete it and back to gentest
         # if accepted, create a pdf and store with test
 
-        self._stubs()
-        self.header = "Blank"
+        self._tools()
+        self.header = "Confirm Test Creation"
         return render_template('sb-admin/pages/tgensend.html', admin_view=self)
 
     @expose('/blank')
