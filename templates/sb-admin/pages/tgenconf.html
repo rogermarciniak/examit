@@ -21,19 +21,27 @@
 					<div class="col-lg-12">
 						<form role="form" action="{{ url_for('.gentest_confd') }}" method="POST" onsubmit="return confirm('Is the form filled out correctly?');">
        <div class="panel panel-primary">
-        Title: {{ test['TITLE'] }}
+     			<div class="panel-heading">
+     				 Title: {{ test.TITLE }}
+     			</div>
         <ul class="list-group">
-         <li class="list-group-item">Time allocated: {{ test['TIME_ALLOWED'] }}</li>
-         <li class="list-group-item">Module: {{ test['MODULE'] }}</li>
-         <li class="list-group-item">Lecturer: {{ test['LECTURER'] }}</li>
+         <li class="list-group-item"><strong>Time allocated:</strong> {{ test.TIME_ALLOWED }}</li>
+         <li class="list-group-item"><strong>Module:</strong> {{ test.MODULE }}</li>
+         <li class="list-group-item"><strong>Lecturer:</strong> {{ test.LECTURER }}</li>
+         <li class="list-group-item"><strong>No. of questions:</strong> {{ test.QUESTCNT }}</li>
          <li class="list-group-item">
-          {% for i, question in enumerate(test['QUESTIONS']) %}
-           {{i}}. {{question['QUESTION']}} <br />
+          {% set isempty = '' %}
+          <strong>Questions:</strong><br />
+          {% for q in test.QUESTIONS %}
+           <strong>{{loop.index}}. </strong>{{q.QUESTION}} <br />
+          {% else %}
+           Not enough questions in category!
+           {% set isempty = 'disabled' %}
           {% endfor %}
          </li>
         </ul>
        </div>
-							<button type="submit" class="btn btn-default">Confirm Test</button>
+							<button type="submit" class="btn btn-default {{isempty}}">Confirm Test</button>
 							<a href="{{ url_for('.gentest') }}" class="btn btn-info" role="button">Start Again</a>
 						</form>
 					</div>

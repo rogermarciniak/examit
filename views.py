@@ -47,6 +47,25 @@ class AdminIndexView(admin.AdminIndexView):
             rows.append(row)
         return (columns, rows)
 
+    def get_tests(self):
+        columns = ["Test", "Print", "Lecturer", "Time Allowed", "Module",
+                   "Questions", "Category", "Creation Date", "Unique ID"]
+        found = tests.find()
+        rows = []
+        for t in found:
+            row = []
+            row.append(t['TITLE'])
+            row.append('PDF')
+            row.append(t['LECTURER'])
+            row.append(t['TIME_ALLOWED'])
+            row.append(t['MODULE'])
+            row.append(t['QUESTCNT'])
+            row.append(t['CATEGORY'])
+            row.append(t['CREATED'])
+            row.append(t['_id'])
+            rows.append(row)
+        return (columns, rows)
+
     def _stubs(self):
         self.nav = {
             "tasks": stub.get_tasks(),
@@ -69,12 +88,13 @@ class AdminIndexView(admin.AdminIndexView):
 
     def _tools(self):
         (qcols, qrows) = self.get_quests()
-        self.qtable = {"questions": {"columns": qcols,
-                                     "rows": qrows}}
+        self.qtable = {"questions": {"columns": qcols, "rows": qrows}}
 
         (ccols, crows) = self.get_cats()
-        self.ctable = {"categories": {"columns": ccols,
-                                      "rows": crows}}
+        self.ctable = {"categories": {"columns": ccols, "rows": crows}}
+
+        (tcols, trows) = self.get_tests()
+        self.ttable = {"tests": {"columns": tcols, "rows": trows}}
 
     @expose('/')
     def index(self):
@@ -184,7 +204,7 @@ class AdminIndexView(admin.AdminIndexView):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
+        self._tools()
         self.header = "Tests"
         return render_template('sb-admin/pages/tests.html',
                                admin_view=self)
@@ -220,34 +240,40 @@ class AdminIndexView(admin.AdminIndexView):
             qamount = 5  # request.form.get('amount')
             current_time = time.localtime()
             ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', current_time)
-            qlist = []
             # draw n questions from category
-            [qlist.append(q) for q in sample(quests.find({"CATEGORY": categ}),
-                                             qamount)]
+            query = list(quests.find({"CATEGORY": categ}))
+            if len(query) >= qamount:
+                samp = sample(query, qamount)
+                for doc in samp:
+                    doc['_id'] = str(doc['_id'])
+                    # TODO: when accessing id later (ObjectId('_id'))
 
-            test = {"TITLE": title,
-                    "TIME_ALLOWED": timeal,
-                    "LECTURER": lecturer,
-                    "MODULE": module,
-                    "CATEGORY": categ,
-                    "QUESTCNT": qamount,
-                    "QUESTIONS": qlist,
-                    "CREATED": ctime}
+                test = {"TITLE": title,
+                        "TIME_ALLOWED": timeal,
+                        "LECTURER": lecturer,
+                        "MODULE": module,
+                        "CATEGORY": categ,
+                        "QUESTCNT": qamount,
+                        "QUESTIONS": samp,
+                        "CREATED": ctime}
 
-            db_checker = {"TITLE": title,
-                          "MODULE": module,
-                          "CATEGORY": categ,
-                          "QUESTCNT": qamount}
+                db_checker = {"TITLE": title,
+                              "MODULE": module,
+                              "CATEGORY": categ,
+                              "QUESTCNT": qamount}
 
-            session['test'] = test
-            session['db_checker'] = db_checker
-            return render_template('sb-admin/pages/tgensend.html',
+                session['test'] = test
+                session['db_checker'] = db_checker
+            else:
+                flash('Not enough questions in the selected category!',
+                      category='danger')
+            return render_template('sb-admin/pages/tgenconf.html',
                                    test=test,
                                    admin_view=self)
 
         self._tools()
         self.header = "Confirm Test Creation"
-        return render_template('sb-admin/pages/tgensend.html', admin_view=self)
+        return render_template('sb-admin/pages/tgenconf.html', admin_view=self)
 
     @expose('/tests/confirmed', methods=['GET', 'POST'])
     def gentest_confd(self):
@@ -255,8 +281,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         if request.method == 'POST':
-            # TODO:
-            # create a pdf and store with test
+            # TODO: create a pdf and store with test
             result = tests.replace_one(session['db_checker'],
                                        session['test'],
                                        upsert=True)
@@ -266,10 +291,14 @@ class AdminIndexView(admin.AdminIndexView):
             else:
                 flash('Test was successfully generated!',
                       category='success')
+            session.pop('db_checker', None)
+            session.pop('test', None)
+            return render_template('sb-admin/pages/tgenconfd.html',
+                                   admin_view=self)
 
         self._stubs()
-        self.header = "Generate Test"
-        return render_template('sb-admin/pages/tgen.html',
+        self.header = "Generation Confirmation"
+        return render_template('sb-admin/pages/tgenconfd.html',
                                admin_view=self)
 
     @expose('/blank')

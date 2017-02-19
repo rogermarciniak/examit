@@ -6,37 +6,9 @@
 {% block body %}
 <div class="row">
 	<div class="col-lg-12">
-		{{adv_table("DataTables Advanced Tables", admin_view.tables.advtables.columns, admin_view.tables.advtables.rows)}}
+		{{adv_table("Generated Tests", admin_view.ttable.tests.columns, admin_view.ttable.tests.rows)}}
 	</div>
 </div>
-
-<div class="row">
-	<div class="col-lg-6">
-		{{table("Kitchen Sink", admin_view.tables.table.columns, admin_view.tables.table.rows, "sink")}}
-	</div>
-	<div class="col-lg-6">
-		{{table("Basic Table", admin_view.tables.table.columns, admin_view.tables.table.rows, "basic")}}
-	</div>
-</div>
-
-<div class="row">
-	<div class="col-lg-6">
-		{{table("Striped Rows", admin_view.tables.table.columns, admin_view.tables.table.rows, "striped")}}
-	</div>
-	<div class="col-lg-6">
-		{{table("Bordered Table", admin_view.tables.table.columns, admin_view.tables.table.rows, "bordered")}}
-	</div>
-</div>
-
-<div class="row">
-	<div class="col-lg-6">
-		{{table("Hover Rows", admin_view.tables.table.columns, admin_view.tables.table.rows, "hover")}}
-	</div>
-	<div class="col-lg-6">
-		{{table("Context Classes", admin_view.tables.table.columns, admin_view.tables.table.rows, "simple", admin_view.tables.table.context)}}
-	</div>
-</div>
-
 {% endblock %}
 
 {% block tail %}
