@@ -247,7 +247,8 @@ class AdminIndexView(admin.AdminIndexView):
                 for doc in samp:
                     doc['_id'] = str(doc['_id'])
                     # TODO: when accessing id later (ObjectId('_id'))
-
+                # FIXME: UnboundLocalError:
+                #       local variable 'test' referenced before assignment
                 test = {"TITLE": title,
                         "TIME_ALLOWED": timeal,
                         "LECTURER": lecturer,
@@ -291,8 +292,8 @@ class AdminIndexView(admin.AdminIndexView):
             else:
                 flash('Test was successfully generated!',
                       category='success')
-            session.pop('db_checker', None)
-            session.pop('test', None)
+            # session.pop('db_checker', None)
+            # session.pop('test', None)
             return render_template('sb-admin/pages/tgenconfd.html',
                                    admin_view=self)
 
