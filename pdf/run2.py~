@@ -1,0 +1,61 @@
+from fpdf import FPDF
+from wand.image import Image
+from wand.color import Color
+
+class PDF(FPDF):
+	def header(self):
+		self.set_fill_color(255, 255, 255)
+		# Arial bold 15
+		self.set_font('Arial', 'B', 8)
+		# Title
+		self.cell(200, 5, 'Class Test 1', 0, 0, 'C', fill=True)
+		# Line break
+		self.ln(10)
+
+	# Page footer
+	def footer(self):
+		self.set_fill_color(255, 255, 255)
+		# Position at 1.5 cm from bottom
+		self.set_y(-15)
+		# Arial italic 8
+		self.set_font('Arial', 'I', 8)
+		# Page number
+		self.cell(0, 10, '', 0, 0, 'C')
+
+titl = 'Land Animals'
+timeAll = '10 minutes'
+lect = 'Roger Nielsen'
+module = 'Animals'
+questAm = '10'
+
+
+
+pdf = PDF()
+pdf.set_fill_color(255, 255, 255)
+pdf.add_page()
+pdf.set_font('Arial', 'B', 14)
+pdf.cell(w=200, h=5, txt='ANSWERBOOK', border=0, ln=1, align='L', fill=True)
+pdf.ln(5)
+pdf.set_font('Arial', 'B', 12)
+pdf.cell(w=80, h=5, txt='Title: ', border=0, ln=0, align='R', fill=True)
+pdf.cell(w=120,h=5, txt=titl, border=0, ln=1, align='L', fill=True)
+pdf.cell(w=80, h=5, txt='Time allowed: ', border=0, ln=0, align='R', fill=True)
+pdf.cell(w=120, h=5, txt=timeAll, border=0, ln=1, align='L', fill=True)
+pdf.cell(w=80, h=5, txt='Lecturer: ', border=0, ln=0, align='R', fill=True)
+pdf.cell(w=120, h=5, txt=lect, border=0, ln=1, align='L', fill=True)
+pdf.cell(w=80, h=5, txt='Module: ', border=0, ln=0, align='R', fill=True)
+pdf.cell(w=120, h=5, txt=module, border=0, ln=1, align='L', fill=True)
+pdf.cell(w=80, h=5, txt='Question amount: ', border=0, ln=0, align='R', fill=True)
+pdf.cell(w=120, h=5, txt=questAm, border=0, ln=1, align='L', fill=True)
+pdf.ln(15)
+pdf.cell(w=40)
+pdf.image(name='longwhite.png', x = None, y = None, w = 80, h = 198)
+pdf.output("test.pdf")
+
+with Image(filename='test.pdf') as img:
+	print('pages = ', len(img.sequence))
+	with img.convert('png') as converted:
+		converted.background_color = Color("white")
+		converted.alpha_channel = False
+		converted.save(filename='test.png')
+

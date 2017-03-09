@@ -3,7 +3,9 @@ from random import sample
 
 import flask_admin as admin
 import flask_login as login
-from flask import flash, redirect, render_template, request, session, url_for
+import pdfkit
+from flask import (flash, make_response, redirect, render_template, request,
+                   session, url_for)
 from flask_admin import expose, helpers
 from pymongo import MongoClient
 
@@ -55,7 +57,7 @@ class AdminIndexView(admin.AdminIndexView):
         for t in found:
             row = []
             row.append(t['TITLE'])
-            row.append('PDF')
+            row.append('<a href="#">PDF</a>')
             row.append(t['LECTURER'])
             row.append(t['TIME_ALLOWED'])
             row.append(t['MODULE'])
@@ -95,6 +97,18 @@ class AdminIndexView(admin.AdminIndexView):
 
         (tcols, trows) = self.get_tests()
         self.ttable = {"tests": {"columns": tcols, "rows": trows}}
+
+    @expose('/pdf')
+    def pdf(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        rendered = render_template('/home/roger/Desktop/ExamIT/1.html')
+        pdf = pdfkit.from_string(rendered, False)
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=1.pdf'
+        return response
 
     @expose('/')
     def index(self):
