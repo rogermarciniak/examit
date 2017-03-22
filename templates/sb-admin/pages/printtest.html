@@ -1,0 +1,74 @@
+{% from "sb-admin/macros/tables/advtable.html" import adv_table %}
+{% from "sb-admin/macros/tables/table.html" import table %}
+
+{% extends "sb-admin/master.html" %}
+
+{% block body %}
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				Choose a test for printing
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-lg-6">
+						<form role="form" action="{{ url_for('.printtest') }}" method="POST">
+       <div class="form-group">
+        <label>Pick a test:</label>
+        <select name="title" class="form-control">
+         {% for test in tests %}
+          <option>{{ test.TITLE }}</option>
+         {% endfor %}
+        </select>
+        <p>
+         fixme: MIDDLE ONE NOT DISPLAYING
+        </p>
+       </div>
+      <div class-"form-group">
+							<button type="submit" class="btn btn-default">Choose this test</button>
+       </div>
+						</form>
+					</div>
+				</div>
+				<!-- /.row (nested) -->
+			</div>
+			<!-- /.panel-body -->
+		</div>
+		<!-- /.panel -->
+	</div>
+	<!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+{% if selected %}
+<div class="row">
+	<div class="col-lg-12">
+		<form role="form" action="{{ url_for('.printconfd') }}" method="POST" onsubmit="return confirm('Is this the test you wish to print?');">
+   <div class="panel panel-primary">
+ 			<div class="panel-heading">
+ 				 Title: {{ selected.TITLE }}
+ 			</div>
+    <ul class="list-group">
+     <li class="list-group-item"><strong>Time allocated:</strong> {{ selected.TIME_ALLOWED }}</li>
+     <li class="list-group-item"><strong>Module:</strong> {{ selected.MODULE }}</li>
+     <li class="list-group-item"><strong>Lecturer:</strong> {{ selected.LECTURER }}</li>
+     <li class="list-group-item"><strong>No. of questions:</strong> {{ selected.QUESTCNT }}</li>
+     <li class="list-group-item">
+      {% set isempty = '' %}
+      <strong>Questions:</strong><br />
+      {% for q in selected.QUESTIONS %}
+       <strong>{{loop.index}}. </strong>{{q.QUESTION}} <br />
+      {% else %}
+       Not enough questions in category!
+       {% set isempty = 'disabled' %}
+      {% endfor %}
+     </li>
+    </ul>
+   </div>
+			<button type="submit" class="btn btn-success">Prepare this test</button>
+			<a href="{{ url_for('.printtest') }}" class="btn btn-info" role="button">Choose Another</a>
+		</form>
+	</div>
+</div>
+{% endif %}
+{% endblock %}

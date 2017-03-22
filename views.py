@@ -47,14 +47,13 @@ class AdminIndexView(admin.AdminIndexView):
         return (columns, rows)
 
     def get_tests(self):
-        columns = ["Test", "Print", "Lecturer", "Time Allowed", "Module",
+        columns = ["Test", "Lecturer", "Time Allowed", "Module",
                    "Questions", "Category", "Creation Date", "Unique ID"]
         found = tests.find()
         rows = []
         for t in found:
             row = []
             row.append(t['TITLE'])
-            row.append('<a href="#">PDF</a>')
             row.append(t['LECTURER'])
             row.append(t['TIME_ALLOWED'])
             row.append(t['MODULE'])
@@ -83,7 +82,7 @@ class AdminIndexView(admin.AdminIndexView):
         self.header = "Welcome to ExamIT"
         return render_template('sb-admin/pages/start.html', admin_view=self)
 
-    @expose('/categories', methods=['GET', 'POST'])
+    @expose('/categories/', methods=['GET', 'POST'])
     def cats(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -113,7 +112,7 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/cats.html',
                                admin_view=self)
 
-    @expose('/questions/display')
+    @expose('/questions/display/')
     def questions(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -123,7 +122,7 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/questions.html',
                                admin_view=self)
 
-    @expose('/questions/add', methods=['GET', 'POST'])
+    @expose('/questions/add/', methods=['GET', 'POST'])
     def add_question(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -177,7 +176,7 @@ class AdminIndexView(admin.AdminIndexView):
                                categs=catlist,
                                admin_view=self)
 
-    @expose('/tests/display', methods=['GET', 'POST'])
+    @expose('/tests/display/', methods=['GET', 'POST'])
     def tests(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -187,7 +186,7 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/tests.html',
                                admin_view=self)
 
-    @expose('/tests/generate', methods=['GET', 'POST'])
+    @expose('/tests/generate/', methods=['GET', 'POST'])
     def gentest(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -203,7 +202,7 @@ class AdminIndexView(admin.AdminIndexView):
                                categs=catlist,
                                admin_view=self)
 
-    @expose('/tests/confirm', methods=['GET', 'POST'])
+    @expose('/tests/confirm/', methods=['GET', 'POST'])
     def gentest_conf(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
@@ -214,7 +213,7 @@ class AdminIndexView(admin.AdminIndexView):
             lecturer = request.form.get('lecturer')
             module = request.form.get('module')
             categ = request.form.get('category')
-            qamount = 5  # request.form.get('amount')
+            qamount = 5  # TODO: request.form.get('amount')
             current_time = time.localtime()
             ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', current_time)
             # draw n questions from category
@@ -225,7 +224,7 @@ class AdminIndexView(admin.AdminIndexView):
                     doc['_id'] = str(doc['_id'])
                     # TODO: when accessing id later (ObjectId('_id'))
                 # FIXME: UnboundLocalError:
-                #       local variable 'test' referenced before assignment
+                #        local variable 'test' referenced before assignment
                 test = {"TITLE": title,
                         "TIME_ALLOWED": timeal,
                         "LECTURER": lecturer,
@@ -242,7 +241,7 @@ class AdminIndexView(admin.AdminIndexView):
 
                 session['test'] = test
                 session['db_checker'] = db_checker
-            else:
+            else:  # not enough questions in the category
                 flash('Not enough questions in the selected category!',
                       category='danger')
             return render_template('sb-admin/pages/tgenconf.html',
@@ -253,13 +252,12 @@ class AdminIndexView(admin.AdminIndexView):
         self.header = "Confirm Test Creation"
         return render_template('sb-admin/pages/tgenconf.html', admin_view=self)
 
-    @expose('/tests/confirmed', methods=['GET', 'POST'])
+    @expose('/tests/confirmed/', methods=['GET', 'POST'])
     def gentest_confd(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
         if request.method == 'POST':
-            # TODO: create a pdf and store with test
             result = tests.replace_one(session['db_checker'],
                                        session['test'],
                                        upsert=True)
@@ -269,8 +267,6 @@ class AdminIndexView(admin.AdminIndexView):
             else:
                 flash('Test was successfully generated!',
                       category='success')
-            # session.pop('db_checker', None)
-            # session.pop('test', None)
             return render_template('sb-admin/pages/tgenconfd.html',
                                    admin_view=self)
 
@@ -278,39 +274,57 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/tgenconfd.html',
                                admin_view=self)
 
-    @expose('/tests/print')
+    @expose('/tests/print/', methods=['GET', 'POST'])
     def printtest(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
-        self.header = "Blank"
-        return render_template('sb-admin/pages/blank.html', admin_view=self)
+        found = tests.find()
 
-    @expose('/tests/correct')
+        if request.method == 'POST':
+            title = request.form.get('title')
+            print('ttitle: ' + title)
+            tfound = tests.find_one({"TITLE": title})
+            return render_template('sb-admin/pages/printtest.html',
+                                   tests=found,
+                                   selected=tfound,
+                                   admin_view=self)
+
+        self.header = "Print Test"
+        return render_template('sb-admin/pages/printtest.html',
+                               tests=found,
+                               admin_view=self)
+
+    @expose('/tests/print/printout', methods=['GET', 'POST'])
+    def printconfd(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        self.header = "Printout"
+        return render_template('sb-admin/pages/printconfd.html',
+                               admin_view=self)
+
+    @expose('/tests/correct/')
     def correcttest(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
         self.header = "Blank"
         return render_template('sb-admin/pages/blank.html', admin_view=self)
 
-    @expose('/tests/results')
+    @expose('/tests/results/')
     def results(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
         self.header = "Blank"
         return render_template('sb-admin/pages/blank.html', admin_view=self)
 
-    @expose('/blank')
+    @expose('/blank/')
     def blank(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
         self.header = "Blank"
         return render_template('sb-admin/pages/blank.html', admin_view=self)
 
