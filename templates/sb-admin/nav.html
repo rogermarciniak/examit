@@ -1,7 +1,4 @@
 {% from "sb-admin/macros/navlink.html" import nav_link with context %}
-{% from "sb-admin/macros/topnav/messagesummary.html" import message_summary with context %}
-{% from "sb-admin/macros/topnav/tasksummary.html" import task_summary with context %}
-{% from "sb-admin/macros/topnav/alert.html" import alert with context %}
 
 {% macro nav_bar(name) %}
 <!-- Navigation -->
@@ -18,67 +15,6 @@
     <!-- /.navbar-header -->
 
     <ul class="nav navbar-top-links navbar-right">
-        <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                <i class="fa fa-envelope fa-fw"></i>  <i class="fa fa-caret-down"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-messages">
-                {% for m in admin_view.nav.messages %}
-                    {{message_summary(m.receivedon, m.from, m.text, m.url)}}
-                    <li class="divider"></li>
-                {% endfor %}
-                <li>
-                    <a class="text-center" href="#">
-                        <strong>Read All Messages</strong>
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
-            <!-- /.dropdown-messages -->
-        </li>
-        <!-- /.dropdown -->
-        <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                <i class="fa fa-tasks fa-fw"></i>  <i class="fa fa-caret-down"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-tasks">
-                {% for t in admin_view.nav.tasks %}
-                    <li>
-                        {{task_summary(t.name, t.type, t.completed, t.url)}}
-                    </li>
-                    <li class="divider"></li>
-                {% endfor %}
-                <li>
-                    <a class="text-center" href="#">
-                        <strong>See All Tasks</strong>
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
-            <!-- /.dropdown-tasks -->
-        </li>
-        <!-- /.dropdown -->
-        <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                <i class="fa fa-bell fa-fw"></i>  <i class="fa fa-caret-down"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-alerts">
-                {% for a in admin_view.nav.alerts %}
-                    <li>
-                        {{alert(a.title, a.type, a.time, a.url)}}
-                    </li>
-                    <li class="divider"></li>
-                {% endfor %}
-                <li>
-                    <a class="text-center" href="#">
-                        <strong>See All Alerts</strong>
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
-            <!-- /.dropdown-alerts -->
-        </li>
-        <!-- /.dropdown -->
         <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                 <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
@@ -131,74 +67,9 @@
                     <ul class="nav nav-second-level">
                         {{nav_link(name="Display Tests", url=url_for('admin.tests'), active=name)}}
                         {{nav_link(name="Generate Test", url=url_for('admin.gentest'), active=name)}}
-                    </ul>
-                    <!-- /.nav-second-level -->
-                </li>
-                <li>
-                    <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> C<span class="fa arrow"></span></a>
-                    <ul class="nav nav-second-level">
-                        {{nav_link(name="F", url=url_for('admin.flot'), active=name)}}
-                        {{nav_link(name="M", url=url_for('admin.morris'), active=name)}}
-                    </ul>
-                    <!-- /.nav-second-level -->
-                </li>
-                <li>
-                    <a href="{{url_for('admin.tables')}}"><i class="fa fa-table fa-fw"></i> T</a>
-                </li>
-                <li>
-                    <a href="{{url_for('admin.forms')}}"><i class="fa fa-file-text fa-fw"></i> F</a>
-                </li>
-                <li>
-                    <a href="#"><i class="fa fa-wrench fa-fw"></i> U<span class="fa arrow"></span></a>
-                    <ul class="nav nav-second-level">
-                        {{nav_link(name="P", url=url_for('admin.panelswells'), active=name)}}
-                        {{nav_link(name="B", url=url_for('admin.buttons'), active=name)}}
-                        {{nav_link(name="N", url=url_for('admin.notifications'), active=name)}}
-                        {{nav_link(name="T", url=url_for('admin.typography'), active=name)}}
-                        {{nav_link(name="I", url=url_for('admin.icons'), active=name)}}
-                        {{nav_link(name="G", url=url_for('admin.grid'), active=name)}}
-                    </ul>
-                    <!-- /.nav-second-level -->
-                </li>
-                <li>
-                    <a href="#"><i class="fa fa-sitemap fa-fw"></i> Multidrop<span class="fa arrow"></span></a>
-                    <ul class="nav nav-second-level">
-                        <li>
-                            <a href="#">2</a>
-                        </li>
-                        <li>
-                            <a href="#">2</a>
-                        </li>
-                        <li>
-                            <a href="#">2<span class="fa arrow"></span></a>
-                            <ul class="nav nav-third-level">
-                                <li>
-                                    <a href="#">3</a>
-                                </li>
-                                <li>
-                                    <a href="#">3</a>
-                                </li>
-                                <li>
-                                    <a href="#">3</a>
-                                </li>
-                                <li>
-                                    <a href="#">3</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-third-level -->
-                        </li>
-                    </ul>
-                    <!-- /.nav-second-level -->
-                </li>
-                {% if name == "Blank Page" or name == "Login Page" %}
-                <li class="active">
-                {% else %}
-                <li>
-                {% endif %}
-                    <a href="#"><i class="fa fa-files-o fa-fw"></i> Loose Pages<span class="fa arrow"></span></a>
-                    <ul class="nav nav-second-level">
-                        {{nav_link(name="Blank", url=url_for('admin.blank'), active=name)}}
-                        {{nav_link(name="Login", url=url_for('admin.logout_view'), active=name)}}
+                        {{nav_link(name="Print a Test", url=url_for('admin.printtest'), active=name)}}
+                        {{nav_link(name="Correct a Test", url=url_for('admin.correcttest'), active=name)}}
+                        {{nav_link(name="Test Results", url=url_for('admin.results'), active=name)}}
                     </ul>
                     <!-- /.nav-second-level -->
                 </li>

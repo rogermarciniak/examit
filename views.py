@@ -3,13 +3,10 @@ from random import sample
 
 import flask_admin as admin
 import flask_login as login
-import pdfkit
-from flask import (flash, make_response, redirect, render_template, request,
-                   session, url_for)
+from flask import flash, redirect, render_template, request, session, url_for
 from flask_admin import expose, helpers
 from pymongo import MongoClient
 
-import stub as stub
 from loginform import LoginForm
 
 # prepares db
@@ -68,26 +65,6 @@ class AdminIndexView(admin.AdminIndexView):
             rows.append(row)
         return (columns, rows)
 
-    def _stubs(self):
-        self.nav = {
-            "tasks": stub.get_tasks(),
-            "messages": stub.get_messages_summary(),
-            "alerts": stub.get_alerts()
-        }
-
-        (cols, rows) = stub.get_adv_tables()
-        (scols, srows, context) = stub.get_tables()
-
-        self.tables = {
-            "advtables": {"columns": cols, "rows": rows},
-            "table": {"columns": scols, "rows": srows, "context": context}
-        }
-
-        self.panelswells = {
-            "accordion": stub.get_accordion_items(),
-            "tabitems": stub.get_tab_items()
-        }
-
     def _tools(self):
         (qcols, qrows) = self.get_quests()
         self.qtable = {"questions": {"columns": qcols, "rows": qrows}}
@@ -98,24 +75,11 @@ class AdminIndexView(admin.AdminIndexView):
         (tcols, trows) = self.get_tests()
         self.ttable = {"tests": {"columns": tcols, "rows": trows}}
 
-    @expose('/pdf')
-    def pdf(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        rendered = render_template('/home/roger/Desktop/ExamIT/1.html')
-        pdf = pdfkit.from_string(rendered, False)
-        response = make_response(pdf)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'attachment; filename=1.pdf'
-        return response
-
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self._stubs()
         self.header = "Welcome to ExamIT"
         return render_template('sb-admin/pages/start.html', admin_view=self)
 
@@ -232,9 +196,8 @@ class AdminIndexView(admin.AdminIndexView):
         found = cats.find()
         for c in found:
             catlist.append(c['CATEGORY'])
-        catlist.sort()
 
-        self._stubs()
+        catlist.sort()
         self.header = "Generate Test"
         return render_template('sb-admin/pages/tgen.html',
                                categs=catlist,
@@ -311,10 +274,36 @@ class AdminIndexView(admin.AdminIndexView):
             return render_template('sb-admin/pages/tgenconfd.html',
                                    admin_view=self)
 
-        self._stubs()
         self.header = "Generation Confirmation"
         return render_template('sb-admin/pages/tgenconfd.html',
                                admin_view=self)
+
+    @expose('/tests/print')
+    def printtest(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        self._stubs()
+        self.header = "Blank"
+        return render_template('sb-admin/pages/blank.html', admin_view=self)
+
+    @expose('/tests/correct')
+    def correcttest(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        self._stubs()
+        self.header = "Blank"
+        return render_template('sb-admin/pages/blank.html', admin_view=self)
+
+    @expose('/tests/results')
+    def results(self):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        self._stubs()
+        self.header = "Blank"
+        return render_template('sb-admin/pages/blank.html', admin_view=self)
 
     @expose('/blank')
     def blank(self):
@@ -324,102 +313,6 @@ class AdminIndexView(admin.AdminIndexView):
         self._stubs()
         self.header = "Blank"
         return render_template('sb-admin/pages/blank.html', admin_view=self)
-
-    @expose('/flot')
-    def flot(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Flot Charts"
-        return render_template('sb-admin/pages/flot.html', admin_view=self)
-
-    @expose('/morris')
-    def morris(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Morris Charts"
-        return render_template('sb-admin/pages/morris.html', admin_view=self)
-
-    @expose('/tables')
-    def tables(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Tables"
-        return render_template('sb-admin/pages/tables.html', admin_view=self)
-
-    @expose('/forms')
-    def forms(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Forms"
-        return render_template('sb-admin/pages/forms.html', admin_view=self)
-
-    @expose('/ui/panelswells')
-    def panelswells(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Panels Wells"
-        return render_template('sb-admin/pages/ui/panels-wells.html',
-                               admin_view=self)
-
-    @expose('/ui/buttons')
-    def buttons(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Buttons"
-        return render_template('sb-admin/pages/ui/buttons.html',
-                               admin_view=self)
-
-    @expose('/ui/notifications')
-    def notifications(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Notifications"
-        return render_template('sb-admin/pages/ui/notifications.html',
-                               admin_view=self)
-
-    @expose('/ui/typography')
-    def typography(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Typography"
-        return render_template('sb-admin/pages/ui/typography.html',
-                               admin_view=self)
-
-    @expose('/ui/icons')
-    def icons(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Icons"
-        return render_template('sb-admin/pages/ui/icons.html',
-                               admin_view=self)
-
-    @expose('/ui/grid')
-    def grid(self):
-        if not login.current_user.is_authenticated:
-            return redirect(url_for('.login_view'))
-
-        self._stubs()
-        self.header = "Grid"
-        return render_template('sb-admin/pages/ui/grid.html',
-                               admin_view=self)
 
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
