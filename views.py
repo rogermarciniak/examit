@@ -88,7 +88,7 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         if request.method == 'POST':
-            cat = request.form.get('category')
+            cat = request.form.get('category').strip()
             current_time = time.localtime()
             ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
                                   current_time)
@@ -208,11 +208,11 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         if request.method == 'POST':
-            title = request.form.get('title')
-            timeal = request.form.get('timeallowed')
-            lecturer = request.form.get('lecturer')
-            module = request.form.get('module')
-            categ = request.form.get('category')
+            title = request.form.get('title').strip()
+            timeal = request.form.get('timeallowed').strip()
+            lecturer = request.form.get('lecturer').strip()
+            module = request.form.get('module').strip()
+            categ = request.form.get('category').strip()
             qamount = 5  # TODO: request.form.get('amount')
             current_time = time.localtime()
             ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', current_time)
@@ -283,7 +283,7 @@ class AdminIndexView(admin.AdminIndexView):
 
         if request.method == 'POST':
             title = request.form.get('title')
-            print('ttitle: ' + title)
+            print('picked test title: ' + title)
             tfound = tests.find_one({"TITLE": title})
             return render_template('sb-admin/pages/printtest.html',
                                    tests=found,
