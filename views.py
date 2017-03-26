@@ -7,6 +7,7 @@ from flask import flash, redirect, render_template, request, session, url_for
 from flask_admin import expose, helpers
 from pymongo import MongoClient
 
+import genPDF
 from loginform import LoginForm
 
 # prepares db
@@ -295,7 +296,7 @@ class AdminIndexView(admin.AdminIndexView):
                                tests=found,
                                admin_view=self)
 
-    @expose('/tests/print/printout', methods=['GET', 'POST'])
+    @expose('/tests/print/printout/', methods=['GET', 'POST'])
     def printconfd(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
