@@ -3,7 +3,8 @@ from random import sample
 
 import flask_admin as admin
 import flask_login as login
-from flask import flash, redirect, render_template, request, session, url_for
+from flask import (flash, redirect, render_template, request, send_file,
+                   session, url_for)
 from flask_admin import expose, helpers
 from pymongo import MongoClient
 
@@ -284,7 +285,7 @@ class AdminIndexView(admin.AdminIndexView):
 
         if request.method == 'POST':
             title = request.form.get('title')
-            print('picked test title: ' + title)
+            session['title'] = title
             tfound = tests.find_one({"TITLE": title})
             return render_template('sb-admin/pages/printtest.html',
                                    tests=found,
@@ -301,6 +302,14 @@ class AdminIndexView(admin.AdminIndexView):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
+        if request.method == 'POST':
+            tfound = tests.find_one({"TITLE": session['title']})
+            # generates the PDF
+            pdf = genPDF.generate(tfound)
+            try:
+                return send_file(pdf, attachment_filename='test.pdf')
+            except Exception as e:
+                return str(e)
         self.header = "Printout"
         return render_template('sb-admin/pages/printconfd.html',
                                admin_view=self)
