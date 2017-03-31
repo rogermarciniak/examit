@@ -1,3 +1,4 @@
+import os
 import time
 from random import sample
 
@@ -7,9 +8,12 @@ from flask import (flash, redirect, render_template, request, send_file,
                    session, url_for)
 from flask_admin import expose, helpers
 from pymongo import MongoClient
+from werkzeug.utils import secure_filename
 
 import genPDF
 from loginform import LoginForm
+
+ALLOWED_EXTENSIONS = set(['pdf'])
 
 # prepares db
 client = MongoClient()
@@ -21,6 +25,11 @@ tests = db.tests
 
 # Create customized index view class that handles login & registration
 class AdminIndexView(admin.AdminIndexView):
+
+    def allowed_file(self, filename):
+        print(filename)
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
     def get_quests(self):
         columns = ["Question", "Category", "Key", "Creation Date", "Unique ID"]
@@ -305,7 +314,7 @@ class AdminIndexView(admin.AdminIndexView):
         if request.method == 'POST':
             tfound = tests.find_one({"TITLE": session['title']})
             # generates the PDF
-            pdf = genPDF.generate(tfound)
+            pdf = genPDF.generate(tfound)  # "pdf/ptest.pdf"
             try:
                 return send_file(pdf, attachment_filename='test.pdf')
             except Exception as e:
@@ -314,13 +323,37 @@ class AdminIndexView(admin.AdminIndexView):
         return render_template('sb-admin/pages/printconfd.html',
                                admin_view=self)
 
-    @expose('/tests/correct/')
+    @expose('/tests/correct/', methods=['GET', 'POST'])
     def correcttest(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self.header = "Blank"
-        return render_template('sb-admin/pages/blank.html', admin_view=self)
+        found = tests.find()
+
+        if request.method == 'POST':
+            #  title = request.form.get('title')
+            #  tfound = tests.find_one({"TITLE": title})
+            # if request does not contain the file part
+            if 'file' not in request.files:
+                flash('No file was sent', category='danger')
+                return redirect(request.url)
+            file = request.files['file']
+            # if user does not select file, browser will
+            # submit an empty part without filename
+            if file.filename == '':
+                flash('No file was selected', category='danger')
+                return redirect(request.url)
+            # if file was selected
+            if file and self.allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join('testupload', filename))
+                return send_file(os.path.join('testupload', filename),
+                                 attachment_filename='test.pdf')
+
+        self.header = "Correct Test"
+        return render_template('sb-admin/pages/uploadtest.html',
+                               tests=found,
+                               admin_view=self)
 
     @expose('/tests/results/')
     def results(self):

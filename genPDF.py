@@ -97,7 +97,7 @@ def generate(test):
         pdf.cell(w=20, h=5, txt='{}. '.format(n + 1), ln=0, align='R')
         pdf.cell(w=160, h=5, txt=guide, border=0, ln=1, align='L')
 
-    # save to file
+    # save file, same name, will always be overwritten for space conservation
     fname = "pdf/ptest.pdf"
     pdf.output(fname)
     return fname

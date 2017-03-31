@@ -11,6 +11,7 @@ from views import AdminIndexView, BlankView
 # Create Flask application
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(32)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
 # bower_components
@@ -63,10 +64,9 @@ init_login()
 
 # Create admin
 admin = admin.Admin(app,
-                    'ExamIT v0.5',
+                    'ExamIT v0.8',
                     index_view=AdminIndexView())
 # admin.add_view(BlankView(name='Blank', url='blank', endpoint='blank'))
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050)
