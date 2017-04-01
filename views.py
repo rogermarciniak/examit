@@ -1,14 +1,15 @@
+import shutil
 import time
 from random import sample
 
 import flask_admin as admin
 import flask_login as login
 from flask import (flash, redirect, render_template, request, send_file,
-                   send_from_directory, session, url_for)
+                   session, url_for)
 from flask_admin import expose, helpers
 from pymongo import MongoClient
-from werkzeug.utils import secure_filename
 
+import corrector
 import genPDF
 import PDF2jpg
 from loginform import LoginForm
@@ -21,11 +22,25 @@ db = client.examit
 cats = db.cats
 quests = db.quests  # question col
 tests = db.tests
+results = db.results
 
 
 # Create customized index view class that handles login & registration
 class AdminIndexView(admin.AdminIndexView):
 
+    # converts answer keys from ABCDE form to 01234 needed for correction
+    def letter2num(self, l):
+        num = ord(l) - 65
+        return num
+
+    # takes a test cursor, returns a dict of answer key items
+    def getAnswerKey(self, test):
+        key = {}
+        for i, question in enumerate(test['QUESTIONS']):
+            key[i] = self.letter2num(question['KEY'])
+        return key
+
+    # ensures the file uploaded is an allowed file type
     def allowed_file(self, filename):
         print(filename)
         return '.' in filename and \
@@ -233,7 +248,6 @@ class AdminIndexView(admin.AdminIndexView):
                 samp = sample(query, qamount)
                 for doc in samp:
                     doc['_id'] = str(doc['_id'])
-                    # TODO: when accessing id later (ObjectId('_id'))
                 test = {"TITLE": title,
                         "TIME_ALLOWED": timeal,
                         "LECTURER": lecturer,
@@ -348,12 +362,30 @@ class AdminIndexView(admin.AdminIndexView):
                 return redirect(request.url)
             # if file was selected & is correct type
             if file and self.allowed_file(file.filename):
-                # filename = secure_filename(file.filename)
                 # as_jpeg = PDF2jpg.convert(file)
-                as_jpeg = 'el15.jpg'
-                return send_from_directory('.', as_jpeg,
-                                           as_attachment=False,
-                                           mimetype='image/jpeg')
+                as_jpeg = 'el15.jpg'  # FIXME: DEHARDCODE
+                # fetches the answer key corresponding to the test
+                key = self.getAnswerKey(tfound)
+                print(key)
+                # corrects the test image using the answer key
+                # returns (location, score, correct, AMOUNT)
+                loc, sc, corr, am, flag = corrector.correct(as_jpeg, key)
+                corrected = {"TEST": title,
+                             "SCORE": sc,
+                             "CORRECT": corr,
+                             "AMOUNT": am,
+                             "FLAG": flag}
+                result = results.insert_one(corrected)
+                id = str(result.inserted_id)
+                # move and give a unique name to the test image for storage
+                # destination = path to file
+                destination = shutil.move(loc, 'results/' + id)
+                print('NEW_FILE_SAVED={}'.format(destination))
+                flash("File was corrected. Visit 'Test Results' to see scores",
+                      category='success')
+                return render_template('sb-admin/pages/uploadtest.html',
+                                       tests=found,
+                                       admin_view=self)
 
         self.header = "Correct Test"
         return render_template('sb-admin/pages/uploadtest.html',
@@ -364,6 +396,8 @@ class AdminIndexView(admin.AdminIndexView):
     def results(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
+
+        # TODO: when accessing id later (ObjectId('_id'))
 
         self.header = "Blank"
         return render_template('sb-admin/pages/blank.html', admin_view=self)
