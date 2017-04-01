@@ -1,16 +1,16 @@
-import os
 import time
 from random import sample
 
 import flask_admin as admin
 import flask_login as login
 from flask import (flash, redirect, render_template, request, send_file,
-                   session, url_for)
+                   send_from_directory, session, url_for)
 from flask_admin import expose, helpers
 from pymongo import MongoClient
 from werkzeug.utils import secure_filename
 
 import genPDF
+import PDF2jpg
 from loginform import LoginForm
 
 ALLOWED_EXTENSIONS = set(['pdf'])
@@ -224,7 +224,7 @@ class AdminIndexView(admin.AdminIndexView):
             lecturer = request.form.get('lecturer').strip()
             module = request.form.get('module').strip()
             categ = request.form.get('category').strip()
-            qamount = 5  # TODO: request.form.get('amount')
+            qamount = int(request.form.get('amount'))
             current_time = time.localtime()
             ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', current_time)
             # draw n questions from category
@@ -234,8 +234,6 @@ class AdminIndexView(admin.AdminIndexView):
                 for doc in samp:
                     doc['_id'] = str(doc['_id'])
                     # TODO: when accessing id later (ObjectId('_id'))
-                # FIXME: UnboundLocalError:
-                #        local variable 'test' referenced before assignment
                 test = {"TITLE": title,
                         "TIME_ALLOWED": timeal,
                         "LECTURER": lecturer,
@@ -252,12 +250,13 @@ class AdminIndexView(admin.AdminIndexView):
 
                 session['test'] = test
                 session['db_checker'] = db_checker
+                return render_template('sb-admin/pages/tgenconf.html',
+                                       test=test,
+                                       admin_view=self)
             else:  # not enough questions in the category
                 flash('Not enough questions in the selected category!',
                       category='danger')
-            return render_template('sb-admin/pages/tgenconf.html',
-                                   test=test,
-                                   admin_view=self)
+                return redirect(url_for('admin.gentest'))
 
         self._tools()
         self.header = "Confirm Test Creation"
@@ -331,8 +330,8 @@ class AdminIndexView(admin.AdminIndexView):
         found = tests.find()
 
         if request.method == 'POST':
-            #  title = request.form.get('title')
-            #  tfound = tests.find_one({"TITLE": title})
+            title = request.form.get('title')
+            tfound = tests.find_one({"TITLE": title})
             # if request does not contain the file part
             if 'file' not in request.files:
                 flash('No file was sent', category='danger')
@@ -343,12 +342,18 @@ class AdminIndexView(admin.AdminIndexView):
             if file.filename == '':
                 flash('No file was selected', category='danger')
                 return redirect(request.url)
-            # if file was selected
+            # if file was selected but of the wrong type
+            if file and not self.allowed_file(file.filename):
+                flash('Please select a .pdf file', category='danger')
+                return redirect(request.url)
+            # if file was selected & is correct type
             if file and self.allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join('testupload', filename))
-                return send_file(os.path.join('testupload', filename),
-                                 attachment_filename='test.pdf')
+                # filename = secure_filename(file.filename)
+                # as_jpeg = PDF2jpg.convert(file)
+                as_jpeg = 'el15.jpg'
+                return send_from_directory('.', as_jpeg,
+                                           as_attachment=False,
+                                           mimetype='image/jpeg')
 
         self.header = "Correct Test"
         return render_template('sb-admin/pages/uploadtest.html',

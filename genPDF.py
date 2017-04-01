@@ -4,7 +4,6 @@ from fpdf import FPDF
 """
 This tool generates the test in a PDF format.
 """
-# TODO: MAKE THIS A CALLABLE METHOD
 
 
 class PDF(FPDF):
