@@ -362,19 +362,22 @@ class AdminIndexView(admin.AdminIndexView):
                 return redirect(request.url)
             # if file was selected & is correct type
             if file and self.allowed_file(file.filename):
-                # as_jpeg = PDF2jpg.convert(file)
+                # FIXME: as_jpeg = PDF2jpg.convert(file)
                 as_jpeg = 'el15.jpg'  # FIXME: DEHARDCODE
                 # fetches the answer key corresponding to the test
                 key = self.getAnswerKey(tfound)
                 print(key)
                 # corrects the test image using the answer key
                 # returns (location, score, correct, AMOUNT)
-                loc, sc, corr, am, flag = corrector.correct(as_jpeg, key)
+                loc, corr, am, sc, flag = corrector.correct(as_jpeg, key)
+                curr_time = time.localtime()
+                ctime = time.strftime('%a, %d %b %Y %H:%M:%S GMT', curr_time)
                 corrected = {"TEST": title,
                              "SCORE": sc,
                              "CORRECT": corr,
                              "AMOUNT": am,
-                             "FLAG": flag}
+                             "FLAG": flag,
+                             "CREATED": ctime}
                 result = results.insert_one(corrected)
                 id = str(result.inserted_id)
                 # move and give a unique name to the test image for storage
@@ -397,18 +400,24 @@ class AdminIndexView(admin.AdminIndexView):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        # TODO: when accessing id later (ObjectId('_id'))
+        # returns a list of unique test titles
+        tests = results.distinct('TEST')
 
-        self.header = "Blank"
-        return render_template('sb-admin/pages/blank.html', admin_view=self)
+        self.header = "Corrected Assessments"
+        return render_template('sb-admin/pages/corrected.html',
+                               tests=tests,
+                               admin_view=self)
 
-    @expose('/blank/')
-    def blank(self):
+    @expose('/tests/results/<test>')
+    def displayresult(self, test):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
-        self.header = "Blank"
-        return render_template('sb-admin/pages/blank.html', admin_view=self)
+        # TODO: when accessing id later (ObjectId('_id'))
+
+        self.header = "Results: {}".format(test)
+        return render_template('sb-admin/pages/listresults.html',
+                               admin_view=self)
 
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
