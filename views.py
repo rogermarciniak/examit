@@ -378,11 +378,17 @@ class AdminIndexView(admin.AdminIndexView):
                              "AMOUNT": am,
                              "FLAG": flag,
                              "CREATED": ctime}
+                # insert into the db
                 result = results.insert_one(corrected)
-                id = str(result.inserted_id)
+                # obtain the MongoDB ObjectID in string form
+                id = str(result.inserted_id) + '.png'
                 # move and give a unique name to the test image for storage
                 # destination = path to file
                 destination = shutil.move(loc, 'results/' + id)
+                # update the document with test file location
+                results.update({'_id': result.inserted_id},
+                               {"$set": {"HREF": id}},
+                               upsert=False)
                 print('NEW_FILE_SAVED={}'.format(destination))
                 flash("File was corrected. Visit 'Test Results' to see scores",
                       category='success')
@@ -413,11 +419,22 @@ class AdminIndexView(admin.AdminIndexView):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
 
+        res = results.find({"TEST": test})
         # TODO: when accessing id later (ObjectId('_id'))
 
         self.header = "Results: {}".format(test)
         return render_template('sb-admin/pages/listresults.html',
+                               results=res,
                                admin_view=self)
+
+    @expose('/tests/results/one/<img>')
+    def showimg(self, img):
+        if not login.current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+
+        location = 'results/' + img
+
+        return send_file(location, attachment_filename=img)
 
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
