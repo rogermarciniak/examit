@@ -6,11 +6,12 @@ class UserNotFoundError(Exception):
 
 
 class User(UserMixin):
-    # TODO: needs to be dehardcoded if time allows for a proper user solution
+    # TODO: you know what to do...
     USERS = {
         # username: password
         'roger': 'troll0',
-        'mary': 'jane'
+        'mary': 'jane',
+        '1': '1'
     }
 
     id = None

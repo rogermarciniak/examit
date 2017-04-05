@@ -1,10 +1,16 @@
 {
-  "name": "EXAMIT",
-  "version": "0.8",
+  "name": "startbootstrap-sb-admin-2",
+  "version": "1.0.7",
+  "homepage": "http://startbootstrap.com/template-overviews/sb-admin-2/",
   "authors": [
-    "Roger Marciniak"
+    "David Miller"
   ],
-  "description": "automatic test correction software",
+  "description": "A free, open source, Bootstrap admin theme created by Start Bootstrap",
+  "keywords": [
+    "bootstrap",
+    "theme"
+  ],
+  "license": "Apache",
   "ignore": [
     "**/.*",
     "node_modules",

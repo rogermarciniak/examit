@@ -362,8 +362,7 @@ class AdminIndexView(admin.AdminIndexView):
                 return redirect(request.url)
             # if file was selected & is correct type
             if file and self.allowed_file(file.filename):
-                # FIXME: as_jpeg = PDF2jpg.convert(file)
-                as_jpeg = 'el15.jpg'  # FIXME: DEHARDCODE
+                as_jpeg = PDF2jpg.convert(file)
                 # fetches the answer key corresponding to the test
                 key = self.getAnswerKey(tfound)
                 print(key)
@@ -420,7 +419,6 @@ class AdminIndexView(admin.AdminIndexView):
             return redirect(url_for('.login_view'))
 
         res = results.find({"TEST": test})
-        # TODO: when accessing id later (ObjectId('_id'))
 
         self.header = "Results: {}".format(test)
         return render_template('sb-admin/pages/listresults.html',
